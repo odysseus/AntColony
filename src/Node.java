@@ -1,7 +1,7 @@
 import java.util.EnumMap;
 import java.util.LinkedList;
 
-public class Node {
+class Node {
     private int foodCount;
     private int pheromoneCount;
     private boolean revealed;
@@ -9,28 +9,28 @@ public class Node {
     private LinkedList<Ant> enemyAnts;
     private EnumMap<Ant.AntType, Integer> antsOfType;
 
-    public Node() {
+    Node() {
         foodCount = 0;
         pheromoneCount = 0;
-        revealed = false;
+        revealed = true;
         colonyAnts = new LinkedList<>();
         enemyAnts = new LinkedList<>();
         antsOfType = new EnumMap<>(Ant.AntType.class);
     }
 
-    public boolean isRevealed() {
+    boolean isRevealed() {
         return revealed;
     }
 
-    public void setRevealed() {
+    void setRevealed() {
         revealed = true;
     }
 
-    public boolean hasAntOfType(Ant.AntType type) {
+    boolean hasAntOfType(Ant.AntType type) {
         return (antsOfType.containsKey(type) && antsOfType.get(type) > 0);
     }
 
-    public int scoutCount() {
+    int scoutCount() {
         if (antsOfType.containsKey(Ant.AntType.SCOUT)) {
             return antsOfType.get(Ant.AntType.SCOUT);
         } else {
@@ -38,7 +38,7 @@ public class Node {
         }
     }
 
-    public int soldierCount() {
+    int soldierCount() {
         if (antsOfType.containsKey(Ant.AntType.SOLDIER)) {
             return antsOfType.get(Ant.AntType.SOLDIER);
         } else {
@@ -46,7 +46,7 @@ public class Node {
         }
     }
 
-    public int foragerCount() {
+    int foragerCount() {
         if (antsOfType.containsKey(Ant.AntType.FORAGER)) {
             return antsOfType.get(Ant.AntType.FORAGER);
         } else {
@@ -54,7 +54,7 @@ public class Node {
         }
     }
 
-    public int balaCount() {
+    int balaCount() {
         if (antsOfType.containsKey(Ant.AntType.BALA)) {
             return antsOfType.get(Ant.AntType.BALA);
         } else {
@@ -62,45 +62,45 @@ public class Node {
         }
     }
 
-    public int getFoodAmount() {
+    int getFoodAmount() {
         return foodCount;
     }
 
-    public int getPheromoneAmount() {
+    int getPheromoneAmount() {
         return pheromoneCount;
     }
 
-    public void addAnt(Ant a) {
-        if (a.type != Ant.AntType.BALA) {
+    void addAnt(Ant a) {
+        if (a.getType() != Ant.AntType.BALA) {
             colonyAnts.add(a);
         } else {
             enemyAnts.add(a);
         }
 
-        if (antsOfType.containsKey(a.type)) {
-            int current = antsOfType.get(a.type);
-            antsOfType.put(a.type, current+1);
+        if (antsOfType.containsKey(a.getType())) {
+            int current = antsOfType.get(a.getType());
+            antsOfType.put(a.getType(), current+1);
         } else {
-            antsOfType.put(a.type, 1);
+            antsOfType.put(a.getType(), 1);
         }
     }
 
-    public void removeAnt(Ant a) {
-        if (a.type != Ant.AntType.BALA) {
+    void removeAnt(Ant a) {
+        if (a.getType() != Ant.AntType.BALA) {
             colonyAnts.remove(a);
         } else {
             enemyAnts.remove(a);
         }
 
-        int current = antsOfType.get(a.type);
-        antsOfType.put(a.type, current-1);
+        int current = antsOfType.get(a.getType());
+        antsOfType.put(a.getType(), current-1);
     }
 
-    public void addFood(int amt) {
+    void addFood(int amt) {
         foodCount += amt;
     }
 
-    public void takeFood() {
+    void takeFood() {
         foodCount--;
     }
 }

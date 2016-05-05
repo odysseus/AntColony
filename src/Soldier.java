@@ -1,6 +1,6 @@
-public class Soldier extends Ant {
+class Soldier extends Ant {
 
-    public Soldier(int bday) {
+    Soldier(int bday) {
         super(AntType.SOLDIER, bday);
     }
 

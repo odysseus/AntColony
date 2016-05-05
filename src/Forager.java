@@ -1,6 +1,6 @@
-public class Forager extends Ant {
+class Forager extends Ant {
 
-    public Forager(int bday) {
+    Forager(int bday) {
        super(AntType.FORAGER, bday);
     }
 

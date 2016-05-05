@@ -1,7 +1,7 @@
 public abstract class Ant {
 
 
-    protected static enum AntType {
+    static enum AntType {
         QUEEN,
         FORAGER,
         SCOUT,
@@ -9,21 +9,53 @@ public abstract class Ant {
         BALA
     }
 
-    protected int id;
-    protected AntType type;
-    protected int lifespan;
-    protected int birthDay;
-    protected boolean alive;
-    protected Node currentNode;
+    private int id;
+    private AntType type;
+    private int lifespan;
+    private int birthDay;
+    private boolean alive;
+    private Node currentNode;
 
     private static int cid = 0;
 
     public Ant(AntType antType, int bday) {
         id = ++cid;
         type = antType;
-        lifespan = 365;
+        lifespan = 3650;
         birthDay = bday;
         alive = true;
+    }
+
+    void setCurrentNode(Node n) {
+        currentNode = n;
+    }
+
+    void kill() {
+        alive = false;
+    }
+
+    boolean isAlive() {
+        return alive;
+    }
+
+    Node getCurrentNode() {
+        return currentNode;
+    }
+
+    int getBirthDay() {
+        return birthDay;
+    }
+
+    AntType getType() {
+        return type;
+    }
+
+    int getLifespan() {
+       return lifespan;
+    }
+
+    void setLifespan(int ls) {
+        lifespan = ls;
     }
 
     public String toString() {

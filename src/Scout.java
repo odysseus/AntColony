@@ -1,6 +1,6 @@
-public class Scout extends Ant {
+class Scout extends Ant {
 
-    public Scout(int bday) {
+    Scout(int bday) {
         super(AntType.SCOUT, bday);
     }
 

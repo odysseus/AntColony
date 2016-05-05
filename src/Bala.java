@@ -1,6 +1,6 @@
-public class Bala extends Ant {
+class Bala extends Ant {
 
-    public Bala(int bday) {
+    Bala(int bday) {
         super(AntType.BALA, bday);
     }
 

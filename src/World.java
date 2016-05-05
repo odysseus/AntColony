@@ -1,16 +1,18 @@
 import java.util.LinkedList;
 import java.util.Random;
 
-public class World {
+class World {
 
     private boolean running;
     private Node[] environment;
     private Node entrance;
+    private Ant queen;
     private LinkedList<Ant> population;
     private int turnNumber;
-    private int dayNumber;
+    private long seed;
+    private Random rand;
 
-    public World(long seed) {
+    World(long randomSeed) {
         running = true;
         environment = new Node[729];
         for (int i=0; i<environment.length; i++) {
@@ -19,16 +21,15 @@ public class World {
         entrance = environment[364];
         population = new LinkedList<>();
         turnNumber = 0;
-        dayNumber = 0;
-
-        generate(seed);
+        seed = randomSeed;
+        rand = new Random(seed);
     }
 
-    public World() {
+    World() {
         this(System.nanoTime());
     }
 
-    public Node getNode(int index) {
+    Node getNode(int index) {
         return environment[index];
     }
 
@@ -36,9 +37,7 @@ public class World {
         return environment.length;
     }
 
-    private void generate(long seed) {
-        Random rand = new Random(seed);
-
+    void generate() {
         // Initialize the state of each node
         for (Node n : environment) {
             if (rand.nextFloat() >= 0.75) {
@@ -48,6 +47,7 @@ public class World {
 
         // Spawn the initial ants
         spawn(Ant.AntType.QUEEN, entrance);
+        queen = population.get(0);
 
         for (int i=0; i<4; i++) {
             spawn(Ant.AntType.SCOUT, entrance);
@@ -69,27 +69,72 @@ public class World {
     private void spawn(Ant.AntType type, Node node) {
         Ant ant;
         switch (type) {
-            case QUEEN: ant = new Queen(dayNumber);
+            case QUEEN: ant = new Queen(turnNumber);
                 break;
-            case FORAGER: ant = new Forager(dayNumber);
+            case FORAGER: ant = new Forager(turnNumber);
                 break;
-            case SCOUT: ant = new Scout(dayNumber);
+            case SCOUT: ant = new Scout(turnNumber);
                 break;
-            case SOLDIER: ant = new Soldier(dayNumber);
+            case SOLDIER: ant = new Soldier(turnNumber);
                 break;
-            case BALA: ant = new Bala(dayNumber);
+            case BALA: ant = new Bala(turnNumber);
                 break;
-            default: ant = new Forager(dayNumber);
+            default: ant = new Forager(turnNumber);
                 break;
         }
 
         population.add(ant);
+        ant.setCurrentNode(node);
         node.addAnt(ant);
     }
 
-    public String timeString() {
+    void dailySpawn() {
+        float spawnSeed = rand.nextFloat();
+        if (spawnSeed < 0.50) {
+            spawn(Ant.AntType.FORAGER, entrance);
+        } else if (spawnSeed < 0.75) {
+            spawn(Ant.AntType.SCOUT, entrance);
+        } else {
+            spawn(Ant.AntType.SOLDIER, entrance);
+        }
+    }
+
+    private void grim() {
+        for (Ant a : population) {
+            if (turnNumber - a.getBirthDay() > a.getLifespan()) {
+                a.kill();
+            }
+        }
+    }
+
+    private void reap() {
+        for (Ant a : population) {
+            if (!a.isAlive()) {
+                a.getCurrentNode().removeAnt(a);
+                population.remove(a);
+            }
+        }
+    }
+
+    private void turnEffects() {
+        turnNumber++;
+
+        grim();
+        reap();
+
+        if (turnNumber % 10 == 0) {
+            dailySpawn();
+        }
+    }
+
+    void queenTest() {
+        turnEffects();
+        queen.activate();
+    }
+
+    String timeString() {
         return String.format("Day: %d -- Turn: %d",
-                dayNumber, turnNumber);
+                turnNumber / 10, turnNumber);
     }
 
 }

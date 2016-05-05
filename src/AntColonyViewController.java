@@ -1,11 +1,14 @@
-public class AntColonyViewController {
+public class AntColonyViewController implements SimulationEventListener {
 
     private AntSimGUI gui;
     private World world;
     private ColonyView colonyView;
     private ColonyNodeView[] nodeViews;
+    private boolean initialized;
 
     public AntColonyViewController() {
+        initialized = false;
+
         nodeViews = new ColonyNodeView[729];
         for (int i=0; i<nodeViews.length; i++) {
             nodeViews[i] = new ColonyNodeView();
@@ -16,17 +19,30 @@ public class AntColonyViewController {
         colonyView = new ColonyView(27,27);
 
         gui.initGUI(colonyView);
-        addNodes();
-        updateNodes();
+        gui.addSimulationEventListener(this);
     }
 
-    public void updateNodes() {
-        for (int i=0; i<nodeViews.length; i++) {
-           updateNode(i);
+    private void init() {
+        if (!initialized) {
+            System.out.println("Initial Setup");
+            world.generate();
+            addNodes();
+            initialized = true;
         }
     }
 
-    public void addNodes() {
+    private void step() {
+        updateNodes();
+    }
+
+    private void updateNodes() {
+        for (int i=0; i<nodeViews.length; i++) {
+           updateNode(i);
+        }
+        gui.setTime(world.timeString());
+    }
+
+    private void addNodes() {
         for (int i=0; i<nodeViews.length; i++) {
             int x = i % 27;
             int y = i / 27;
@@ -88,6 +104,16 @@ public class AntColonyViewController {
             viewNode.showBalaIcon();
         } else {
             viewNode.hideBalaIcon();
+        }
+    }
+
+    public void simulationEventOccurred(SimulationEvent simEvent) {
+        if (simEvent.getEventType() == SimulationEvent.NORMAL_SETUP_EVENT) {
+            init();
+            updateNodes();
+        } else if (simEvent.getEventType() == SimulationEvent.QUEEN_TEST_EVENT) {
+            world.queenTest();
+            updateNodes();
         }
     }
 
