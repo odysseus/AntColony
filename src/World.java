@@ -3,14 +3,19 @@ import java.util.Random;
 
 public class World {
 
-    Node[] environment;
-    Node entrance;
-    LinkedList<Ant> population;
-    int turnNumber;
-    int dayNumber;
+    private boolean running;
+    private Node[] environment;
+    private Node entrance;
+    private LinkedList<Ant> population;
+    private int turnNumber;
+    private int dayNumber;
 
     public World(long seed) {
+        running = true;
         environment = new Node[729];
+        for (int i=0; i<environment.length; i++) {
+            environment[i] = new Node();
+        }
         entrance = environment[364];
         population = new LinkedList<>();
         turnNumber = 0;
@@ -71,6 +76,11 @@ public class World {
 
         population.add(ant);
         node.addAnt(ant);
+    }
+
+    public String timeString() {
+        return String.format("Day: %d -- Turn: %d",
+                dayNumber, turnNumber);
     }
 
 }

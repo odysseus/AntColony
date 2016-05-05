@@ -141,7 +141,7 @@ public class AntSimGUI extends JFrame
 			setSize(640, 480);
 		
 		// maximize window
-		setExtendedState(this.getExtendedState() | this.MAXIMIZED_BOTH);
+//		setExtendedState(this.getExtendedState() | this.MAXIMIZED_BOTH);
 	}
 	
 	
