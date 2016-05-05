@@ -28,6 +28,14 @@ public class World {
         this(System.nanoTime());
     }
 
+    public Node getNode(int index) {
+        return environment[index];
+    }
+
+    public int nodeCount() {
+        return environment.length;
+    }
+
     private void generate(long seed) {
         Random rand = new Random(seed);
 
@@ -53,8 +61,9 @@ public class World {
             spawn(Ant.AntType.FORAGER, entrance);
         }
 
-        // Add the initial food supply
+        // Add the initial food supply and reveal the entrance
         entrance.addFood(1000);
+        entrance.setRevealed();
     }
 
     private void spawn(Ant.AntType type, Node node) {

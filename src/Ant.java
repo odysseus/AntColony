@@ -1,7 +1,7 @@
 public abstract class Ant {
 
 
-    protected enum AntType {
+    protected static enum AntType {
         QUEEN,
         FORAGER,
         SCOUT,
