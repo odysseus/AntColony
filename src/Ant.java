@@ -18,8 +18,9 @@ public abstract class Ant {
     private int lifespan;
     private int birthDay;
     private boolean alive;
-    protected World world;
+    private World world;
     protected EnvironmentNode currentNode;
+    private boolean naturalCauses;
 
     private static int cid = 0;
 
@@ -30,6 +31,7 @@ public abstract class Ant {
         lifespan = 3650;
         birthDay = world.getTurnNumber();
         alive = true;
+        naturalCauses = false;
     }
 
     void setCurrentNode(EnvironmentNode n) {
@@ -38,6 +40,14 @@ public abstract class Ant {
 
     void kill() {
         alive = false;
+    }
+
+    void setNaturalCauses() {
+        naturalCauses = true;
+    }
+
+    boolean diedNaturally() {
+        return naturalCauses;
     }
 
     boolean isAlive() {

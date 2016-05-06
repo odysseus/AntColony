@@ -1,7 +1,10 @@
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.LinkedList;
+import java.util.List;
 
 class EnvironmentNode {
+    private World world;
     private int number;
     private int foodCount;
     private int pheromoneCount;
@@ -10,7 +13,8 @@ class EnvironmentNode {
     private LinkedList<Ant> enemyAnts;
     private EnumMap<Ant.AntType, Integer> antsOfType;
 
-    EnvironmentNode(int i) {
+    EnvironmentNode(World w, int i) {
+        world = w;
         number = i;
         foodCount = 0;
         pheromoneCount = 0;
@@ -34,6 +38,75 @@ class EnvironmentNode {
 
     int getNumber() {
         return number;
+    }
+
+    List<EnvironmentNode> getAdjacentNodes() {
+        List<Integer> indices = new ArrayList<>();
+
+        indices.add(number - 26);
+        indices.add(number - 27);
+        indices.add(number - 28);
+        indices.add(number + 26);
+        indices.add(number + 27);
+        indices.add(number + 28);
+        indices.add(number - 1);
+        indices.add(number + 1);
+
+        if (number / 27 == 0) {
+            // We are on the top row
+            indices.remove((Integer) (number - 26));
+            indices.remove((Integer) (number - 27));
+            indices.remove((Integer) (number - 28));
+        }
+
+        if (number / 27 == 26) {
+            // We are on the bottom row
+            indices.remove((Integer) (number + 26));
+            indices.remove((Integer) (number + 27));
+            indices.remove((Integer) (number + 28));
+        }
+
+        if (number % 27 == 0) {
+            // We are on the left row
+            indices.remove((Integer) (number - 28));
+            indices.remove((Integer) (number - 1));
+            indices.remove((Integer) (number + 26));
+        }
+
+        if (number % 27 == 26) {
+            // We are on the right row
+            indices.remove((Integer) (number - 26));
+            indices.remove((Integer) (number + 1));
+            indices.remove((Integer) (number + 28));
+        }
+
+        List<EnvironmentNode> adjacent = new ArrayList<>();
+        for (int i : indices) {
+            adjacent.add(world.getNode(i));
+        }
+
+        return adjacent;
+    }
+
+    List<EnvironmentNode> getExploredAdjacentNodes() {
+        List<EnvironmentNode> adjacent = getAdjacentNodes();
+        List<EnvironmentNode> explored = new ArrayList<>();
+
+        for (EnvironmentNode node : adjacent) {
+            if (node.isRevealed()) {
+                explored.add(node);
+            }
+        }
+
+        return explored;
+    }
+
+    boolean isEntrance() {
+        return (this == world.getEntrance());
+    }
+
+    boolean hasFood() {
+        return (this.foodCount > 0 && !this.isEntrance());
     }
 
     int scoutCount() {
@@ -80,6 +153,10 @@ class EnvironmentNode {
         return (colonyAnts.size() > 0);
     }
 
+    LinkedList<Ant> getColonyAnts() {
+        return colonyAnts;
+    }
+
     int getFoodAmount() {
         return foodCount;
     }
@@ -90,6 +167,14 @@ class EnvironmentNode {
 
     int getPheromoneAmount() {
         return pheromoneCount;
+    }
+
+    void addPheromone(int amt) {
+        pheromoneCount += amt;
+    }
+
+    void halvePheromone() {
+        pheromoneCount /= 2;
     }
 
     void addAnt(Ant a) {

@@ -9,7 +9,7 @@ class Scout extends Ant {
     @Override
     protected void activate() {
         if (isAlive()) {
-            List<EnvironmentNode> adjacent = world.getAdjacentNodes(getCurrentNode().getNumber());
+            List<EnvironmentNode> adjacent = currentNode.getAdjacentNodes();
             randomMove(adjacent);
             currentNode.setRevealed();
         }

@@ -105,6 +105,8 @@ public class AntColonyViewController implements SimulationEventListener {
         } else {
             viewNode.hideBalaIcon();
         }
+
+        viewNode.setPheromoneLevel(modelNode.getPheromoneAmount());
     }
 
     public void simulationEventOccurred(SimulationEvent simEvent) {
@@ -120,6 +122,9 @@ public class AntColonyViewController implements SimulationEventListener {
                 break;
             case SimulationEvent.SOLDIER_TEST_EVENT:
                 world.soldierTest();
+                break;
+            case SimulationEvent.FORAGER_TEST_EVENT:
+                world.foragerTest();
                 break;
             case SimulationEvent.STEP_EVENT:
                 world.nextTurn();

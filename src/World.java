@@ -1,4 +1,5 @@
 import java.util.*;
+import java.util.stream.Collectors;
 
 class World {
 
@@ -17,7 +18,7 @@ class World {
         running = true;
         environment = new EnvironmentNode[729];
         for (int i=0; i<environment.length; i++) {
-            environment[i] = new EnvironmentNode(i);
+            environment[i] = new EnvironmentNode(this, i);
         }
         entrance = environment[364];
         population = new LinkedList<>();
@@ -40,68 +41,8 @@ class World {
         return turnNumber;
     }
 
-    List<EnvironmentNode> getAdjacentNodes(int nodeNo) {
-        List<Integer> indices = new ArrayList<>();
-        indices.add(nodeNo - 26);
-        indices.add(nodeNo - 27);
-        indices.add(nodeNo - 28);
-        indices.add(nodeNo + 26);
-        indices.add(nodeNo + 27);
-        indices.add(nodeNo + 28);
-        indices.add(nodeNo - 1);
-        indices.add(nodeNo + 1);
-
-        if (nodeNo / 27 == 0) {
-            // We are on the top row
-            indices.remove((Integer) (nodeNo - 26));
-            indices.remove((Integer) (nodeNo - 27));
-            indices.remove((Integer) (nodeNo - 28));
-        }
-
-        if (nodeNo / 27 == 26) {
-            // We are on the bottom row
-            indices.remove((Integer) (nodeNo + 26));
-            indices.remove((Integer) (nodeNo + 27));
-            indices.remove((Integer) (nodeNo + 28));
-        }
-
-        if (nodeNo % 27 == 0) {
-            // We are on the left row
-            indices.remove((Integer) (nodeNo - 28));
-            indices.remove((Integer) (nodeNo - 1));
-            indices.remove((Integer) (nodeNo + 26));
-        }
-
-        if (nodeNo % 27 == 26) {
-            // We are on the right row
-            indices.remove((Integer) (nodeNo - 26));
-            indices.remove((Integer) (nodeNo + 1));
-            indices.remove((Integer) (nodeNo + 28));
-        }
-
-        List<EnvironmentNode> adjacent = new ArrayList<>();
-        for (int i : indices) {
-            adjacent.add(environment[i]);
-        }
-
-        return adjacent;
-    }
-
-    List<EnvironmentNode> getExploredAdjacentNodes(int nodeNo) {
-        List<EnvironmentNode> adjacent = getAdjacentNodes(nodeNo);
-        List<EnvironmentNode> explored = new ArrayList<>();
-
-        for (EnvironmentNode node : adjacent) {
-           if (node.isRevealed()) {
-               explored.add(node);
-           }
-        }
-
-        return explored;
-    }
-
-    public int nodeCount() {
-        return environment.length;
+    EnvironmentNode getEntrance() {
+        return entrance;
     }
 
     void generate() {
@@ -132,7 +73,7 @@ class World {
         entrance.setFoodCount(1000);
         entrance.setRevealed();
 
-        List<EnvironmentNode> adjacent = getAdjacentNodes(entrance.getNumber());
+        List<EnvironmentNode> adjacent = entrance.getAdjacentNodes();
         for (EnvironmentNode node : adjacent) {
             node.setRevealed();
         }
@@ -173,10 +114,31 @@ class World {
         }
     }
 
+    private void balaSpawn() {
+        if (rand.nextFloat() > 0.97) {
+            spawn(Ant.AntType.BALA, environment[balaSpawnLocation()]);
+        }
+    }
+
+    int balaSpawnLocation() {
+        int seed = rand.nextInt(environment.length);
+        if (seed / 27 == 0 || seed / 27 == 26 || seed % 27 == 0 || seed % 27 == 26) {
+            return  seed;
+        } else {
+            if (rand.nextFloat() > 0.50) {
+                for ( ; seed % 27 != 26; seed++);
+            } else {
+                for ( ; seed % 27 != 0; seed--);
+            }
+            return seed;
+        }
+    }
+
     private void grim() {
         for (Ant a : population) {
             if (turnNumber > a.getBirthDay() + a.getLifespan()) {
                 a.kill();
+                a.setNaturalCauses();
             }
         }
     }
@@ -193,12 +155,25 @@ class World {
         }
     }
 
+    boolean isNewDay() {
+        return (turnNumber % 10 == 0);
+    }
+
+    private void halvePheromones() {
+        for (EnvironmentNode node : environment) {
+            node.halvePheromone();
+        }
+    }
+
     private void beginTurn() {
-        System.out.println(antHeaven);
         turnNumber++;
 
         grim();
         reap();
+
+        if (isNewDay()) {
+            halvePheromones();
+        }
     }
 
     void queenTest() {
@@ -225,6 +200,15 @@ class World {
         }
     }
 
+    void foragerTest() {
+        beginTurn();
+        for (Ant a : population) {
+            if (a.getType() == Ant.AntType.FORAGER) {
+                a.activate();
+            }
+        }
+    }
+
     void fullRun() {
         while (running) {
             nextTurn();
@@ -236,10 +220,12 @@ class World {
 
         if (!queen.isAlive()) {
             running = false;
+            System.out.println(afterActionReport());
             return;
         }
 
         queenSpawn();
+        balaSpawn();
 
         for (Ant a : population) {
             a.activate();
@@ -249,6 +235,75 @@ class World {
     String timeString() {
         return String.format("D: %d | T: %d | A: %d | D: %d",
                 turnNumber / 10, turnNumber, population.size(), antHeaven.size());
+    }
+
+    String afterActionReport() {
+        List<Ant> livingForagers = population.stream().filter(a -> a.getType() == Ant.AntType.FORAGER).collect(Collectors.toList());
+        List<Ant> livingScouts = population.stream().filter(a -> a.getType() == Ant.AntType.SCOUT).collect(Collectors.toList());
+        List<Ant> livingSoldiers = population.stream().filter(a -> a.getType() == Ant.AntType.SOLDIER).collect(Collectors.toList());
+        List<Ant> livingBalas = population.stream().filter(a -> a.getType() == Ant.AntType.BALA).collect(Collectors.toList());
+
+        List<Ant> deadForagers = antHeaven.stream().filter(a -> a.getType() == Ant.AntType.FORAGER).collect(Collectors.toList());
+        List<Ant> deadScouts = antHeaven.stream().filter(a -> a.getType() == Ant.AntType.SCOUT).collect(Collectors.toList());
+        List<Ant> deadSoldiers = antHeaven.stream().filter(a -> a.getType() == Ant.AntType.SOLDIER).collect(Collectors.toList());
+        List<Ant> deadBalas = antHeaven.stream().filter(a -> a.getType() == Ant.AntType.BALA).collect(Collectors.toList());
+
+        StringBuilder report = new StringBuilder();
+        report.append("--- AFTER ACTION REPORT ---");
+        report.append(String.format("\nSimulation lasted %d Turns and %d Days", turnNumber, turnNumber / 10));
+        if (queen.diedNaturally()) {
+            report.append("\nQueen died by natural causes");
+        } else if (entrance.hasEnemyAnts()) {
+            report.append("\nQueen died by a Bala attack");
+        } else {
+            report.append("\nQueen died of starvation");
+        }
+
+
+        report.append("\n\nTOTAL ANTS:");
+        report.append(String.format("\nAlive: %d\nDead: %d", population.size(), antHeaven.size()));
+
+        report.append("\n\nREPORT BY ANT TYPE:");
+
+        report.append("\n\nFORAGERS:\n----------------");
+        report.append(String.format("\nTotal: %d\nAlive: %d\nDied Naturally: %d\nDied Violently: %d",
+                livingForagers.size() + deadForagers.size(),
+                livingForagers.size(),
+                deadForagers.stream().filter(a -> a.diedNaturally()).count(),
+                deadForagers.stream().filter(a -> !a.diedNaturally()).count()));
+
+        report.append("\n\nSCOUTS:\n----------------");
+        report.append(String.format("\nTotal: %d\nAlive: %d\nDied Naturally: %d\nDied Violently: %d",
+                livingScouts.size() + deadScouts.size(),
+                livingScouts.size(),
+                deadScouts.stream().filter(a -> a.diedNaturally()).count(),
+                deadScouts.stream().filter(a -> !a.diedNaturally()).count()));
+
+        report.append("\n\nSOLDIERS:\n----------------");
+        report.append(String.format("\nTotal: %d\nAlive: %d\nDied Naturally: %d\nDied Violently: %d",
+                livingSoldiers.size() + deadSoldiers.size(),
+                livingSoldiers.size(),
+                deadSoldiers.stream().filter(a -> a.diedNaturally()).count(),
+                deadSoldiers.stream().filter(a -> !a.diedNaturally()).count()));
+        report.append(String.format("\nAttacks: %d\nKills: %d\nPercentage: %.4f",
+                Soldier.ATK_SUCCESS + Soldier.ATK_FAIL,
+                Soldier.ATK_SUCCESS,
+                (float) Soldier.ATK_SUCCESS / (Soldier.ATK_SUCCESS + Soldier.ATK_FAIL)));
+
+
+        report.append("\n\nBALAS\n----------------");
+        report.append(String.format("\nTotal: %d\nAlive: %d\nDied Naturally: %d\nDied Violently: %d",
+                livingBalas.size() + deadBalas.size(),
+                livingBalas.size(),
+                deadBalas.stream().filter(a -> a.diedNaturally()).count(),
+                deadBalas.stream().filter(a -> !a.diedNaturally()).count()));
+        report.append(String.format("\nAttacks: %d\nKills: %d\nPercentage: %.4f",
+                Bala.ATK_SUCCESS + Bala.ATK_FAIL,
+                Bala.ATK_SUCCESS,
+                (float) Bala.ATK_SUCCESS / (Bala.ATK_SUCCESS + Bala.ATK_FAIL)));
+
+
+        return report.toString();
     }
 
 }
