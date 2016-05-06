@@ -1,36 +1,90 @@
-import java.util.LinkedList;
-import java.util.Random;
+import java.util.*;
 
 class World {
 
     private boolean running;
-    private Node[] environment;
-    private Node entrance;
+    private int turnNumber;
+    private EnvironmentNode[] environment;
+    private EnvironmentNode entrance;
     private Ant queen;
     private LinkedList<Ant> population;
-    private int turnNumber;
     private long seed;
     private Random rand;
 
+    private List<Ant> antHeaven;
+
     World(long randomSeed) {
         running = true;
-        environment = new Node[729];
+        environment = new EnvironmentNode[729];
         for (int i=0; i<environment.length; i++) {
-            environment[i] = new Node();
+            environment[i] = new EnvironmentNode(i);
         }
         entrance = environment[364];
         population = new LinkedList<>();
         turnNumber = 0;
         seed = randomSeed;
         rand = new Random(seed);
+
+        antHeaven = new ArrayList<>();
     }
 
     World() {
         this(System.nanoTime());
     }
 
-    Node getNode(int index) {
+    EnvironmentNode getNode(int index) {
         return environment[index];
+    }
+
+    int getTurnNumber() {
+        return turnNumber;
+    }
+
+    EnvironmentNode[] getAdjacentNodes(int nodeNo) {
+        List<Integer> indices = new ArrayList<>();
+        indices.add(nodeNo - 26);
+        indices.add(nodeNo - 27);
+        indices.add(nodeNo - 28);
+        indices.add(nodeNo + 26);
+        indices.add(nodeNo + 27);
+        indices.add(nodeNo + 28);
+        indices.add(nodeNo - 1);
+        indices.add(nodeNo + 1);
+
+        if (nodeNo / 27 == 0) {
+            // We are on the top row
+            indices.remove((Integer) (nodeNo - 26));
+            indices.remove((Integer) (nodeNo - 27));
+            indices.remove((Integer) (nodeNo - 28));
+        }
+
+        if (nodeNo / 27 == 26) {
+            // We are on the bottom row
+            indices.remove((Integer) (nodeNo + 26));
+            indices.remove((Integer) (nodeNo + 27));
+            indices.remove((Integer) (nodeNo + 28));
+        }
+
+        if (nodeNo % 27 == 0) {
+            // We are on the left row
+            indices.remove((Integer) (nodeNo - 28));
+            indices.remove((Integer) (nodeNo - 1));
+            indices.remove((Integer) (nodeNo + 26));
+        }
+
+        if (nodeNo % 27 == 26) {
+            // We are on the right row
+            indices.remove((Integer) (nodeNo - 26));
+            indices.remove((Integer) (nodeNo + 1));
+            indices.remove((Integer) (nodeNo + 28));
+        }
+
+        EnvironmentNode[] adjacent = new EnvironmentNode[indices.size()];
+        for (int i=0; i<adjacent.length; i++) {
+            adjacent[i] = environment[indices.get(i)];
+        }
+
+        return adjacent;
     }
 
     public int nodeCount() {
@@ -39,7 +93,7 @@ class World {
 
     void generate() {
         // Initialize the state of each node
-        for (Node n : environment) {
+        for (EnvironmentNode n : environment) {
             if (rand.nextFloat() >= 0.75) {
                 n.addFood(500 + rand.nextInt(501));
             }
@@ -61,25 +115,25 @@ class World {
             spawn(Ant.AntType.FORAGER, entrance);
         }
 
-        // Add the initial food supply and reveal the entrance
-        entrance.addFood(1000);
+        // Set the initial food supply and reveal the entrance
+        entrance.setFoodCount(1000);
         entrance.setRevealed();
     }
 
-    private void spawn(Ant.AntType type, Node node) {
+    private void spawn(Ant.AntType type, EnvironmentNode node) {
         Ant ant;
         switch (type) {
-            case QUEEN: ant = new Queen(turnNumber);
+            case QUEEN: ant = new Queen(this);
                 break;
-            case FORAGER: ant = new Forager(turnNumber);
+            case FORAGER: ant = new Forager(this);
                 break;
-            case SCOUT: ant = new Scout(turnNumber);
+            case SCOUT: ant = new Scout(this);
                 break;
-            case SOLDIER: ant = new Soldier(turnNumber);
+            case SOLDIER: ant = new Soldier(this);
                 break;
-            case BALA: ant = new Bala(turnNumber);
+            case BALA: ant = new Bala(this);
                 break;
-            default: ant = new Forager(turnNumber);
+            default: ant = new Forager(this);
                 break;
         }
 
@@ -88,53 +142,85 @@ class World {
         node.addAnt(ant);
     }
 
-    void dailySpawn() {
-        float spawnSeed = rand.nextFloat();
-        if (spawnSeed < 0.50) {
-            spawn(Ant.AntType.FORAGER, entrance);
-        } else if (spawnSeed < 0.75) {
-            spawn(Ant.AntType.SCOUT, entrance);
-        } else {
-            spawn(Ant.AntType.SOLDIER, entrance);
+    void queenSpawn() {
+        if (turnNumber % 10 == 0) {
+            float spawnSeed = rand.nextFloat();
+            if (spawnSeed < 0.50) {
+                spawn(Ant.AntType.FORAGER, entrance);
+            } else if (spawnSeed < 0.75) {
+                spawn(Ant.AntType.SCOUT, entrance);
+            } else {
+                spawn(Ant.AntType.SOLDIER, entrance);
+            }
         }
     }
 
     private void grim() {
         for (Ant a : population) {
-            if (turnNumber - a.getBirthDay() > a.getLifespan()) {
+            if (turnNumber > a.getBirthDay() + a.getLifespan()) {
                 a.kill();
             }
         }
     }
 
     private void reap() {
-        for (Ant a : population) {
-            if (!a.isAlive()) {
-                a.getCurrentNode().removeAnt(a);
-                population.remove(a);
+        Ant ant;
+        for (Iterator<Ant> iter = population.iterator(); iter.hasNext(); ) {
+            ant = iter.next();
+            if (!ant.isAlive()) {
+                ant.getCurrentNode().removeAnt(ant);
+                antHeaven.add(ant);
+                iter.remove();
             }
         }
     }
 
-    private void turnEffects() {
+    private void beginTurn() {
         turnNumber++;
 
         grim();
         reap();
-
-        if (turnNumber % 10 == 0) {
-            dailySpawn();
-        }
     }
 
     void queenTest() {
-        turnEffects();
+        beginTurn();
+        queenSpawn();
         queen.activate();
     }
 
+    void scoutTest() {
+        beginTurn();
+        for (Ant a : population) {
+            if (a.getType() == Ant.AntType.SCOUT) {
+                a.activate();
+            }
+        }
+    }
+
+    void fullRun() {
+        while (running) {
+            nextTurn();
+        }
+    }
+
+    void nextTurn() {
+        beginTurn();
+
+        if (!queen.isAlive()) {
+            running = false;
+            return;
+        }
+
+        queenSpawn();
+
+        for (Ant a : population) {
+            a.activate();
+        }
+    }
+
     String timeString() {
-        return String.format("Day: %d -- Turn: %d",
-                turnNumber / 10, turnNumber);
+        return String.format("D: %d | T: %d | A: %d | D: %d",
+                turnNumber / 10, turnNumber, population.size(), antHeaven.size());
     }
 
 }

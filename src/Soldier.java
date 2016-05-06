@@ -1,7 +1,7 @@
 class Soldier extends Ant {
 
-    Soldier(int bday) {
-        super(AntType.SOLDIER, bday);
+    Soldier(World world) {
+        super(AntType.SOLDIER, world);
     }
 
     @Override

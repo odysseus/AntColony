@@ -1,7 +1,7 @@
 class Bala extends Ant {
 
-    Bala(int bday) {
-        super(AntType.BALA, bday);
+    Bala(World world) {
+        super(AntType.BALA, world);
     }
 
     @Override

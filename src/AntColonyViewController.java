@@ -31,14 +31,14 @@ public class AntColonyViewController implements SimulationEventListener {
         }
     }
 
-    private void step() {
-        updateNodes();
-    }
-
     private void updateNodes() {
         for (int i=0; i<nodeViews.length; i++) {
            updateNode(i);
         }
+    }
+
+    private void updateView() {
+        updateNodes();
         gui.setTime(world.timeString());
     }
 
@@ -52,7 +52,7 @@ public class AntColonyViewController implements SimulationEventListener {
     }
 
     private void updateNode(int index) {
-        Node modelNode = world.getNode(index);
+        EnvironmentNode modelNode = world.getNode(index);
         ColonyNodeView viewNode = nodeViews[index];
 
         if (modelNode.isRevealed()) {
@@ -108,13 +108,24 @@ public class AntColonyViewController implements SimulationEventListener {
     }
 
     public void simulationEventOccurred(SimulationEvent simEvent) {
-        if (simEvent.getEventType() == SimulationEvent.NORMAL_SETUP_EVENT) {
-            init();
-            updateNodes();
-        } else if (simEvent.getEventType() == SimulationEvent.QUEEN_TEST_EVENT) {
-            world.queenTest();
-            updateNodes();
+        switch (simEvent.getEventType()) {
+            case SimulationEvent.NORMAL_SETUP_EVENT:
+                init();
+                break;
+            case SimulationEvent.QUEEN_TEST_EVENT:
+                world.queenTest();
+                break;
+            case SimulationEvent.SCOUT_TEST_EVENT:
+                world.scoutTest();
+                break;
+            case SimulationEvent.STEP_EVENT:
+                world.nextTurn();
+                break;
+            case SimulationEvent.RUN_EVENT:
+                world.fullRun();
+                break;
         }
-    }
 
+        updateView();
+    }
 }

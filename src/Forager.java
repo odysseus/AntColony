@@ -1,7 +1,7 @@
 class Forager extends Ant {
 
-    Forager(int bday) {
-       super(AntType.FORAGER, bday);
+    Forager(World world) {
+       super(AntType.FORAGER, world);
     }
 
     @Override

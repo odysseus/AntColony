@@ -1,7 +1,8 @@
+import java.util.Random;
+
 public abstract class Ant {
 
-
-    static enum AntType {
+    enum AntType {
         QUEEN,
         FORAGER,
         SCOUT,
@@ -9,24 +10,28 @@ public abstract class Ant {
         BALA
     }
 
+    private static final Random RAND = new Random();
+
     private int id;
     private AntType type;
     private int lifespan;
     private int birthDay;
     private boolean alive;
-    private Node currentNode;
+    protected World world;
+    protected EnvironmentNode currentNode;
 
     private static int cid = 0;
 
-    public Ant(AntType antType, int bday) {
+    public Ant(AntType t, World w) {
         id = ++cid;
-        type = antType;
+        world = w;
+        type = t;
         lifespan = 3650;
-        birthDay = bday;
+        birthDay = world.getTurnNumber();
         alive = true;
     }
 
-    void setCurrentNode(Node n) {
+    void setCurrentNode(EnvironmentNode n) {
         currentNode = n;
     }
 
@@ -38,7 +43,7 @@ public abstract class Ant {
         return alive;
     }
 
-    Node getCurrentNode() {
+    EnvironmentNode getCurrentNode() {
         return currentNode;
     }
 
@@ -64,5 +69,15 @@ public abstract class Ant {
     }
 
     protected abstract void activate();
+
+    protected void move(EnvironmentNode n) {
+        currentNode.removeAnt(this);
+        n.addAnt(this);
+        currentNode = n;
+    }
+
+    protected void randomMove(EnvironmentNode[] ns) {
+        move(ns[RAND.nextInt(ns.length)]);
+    }
 
 }

@@ -1,7 +1,8 @@
 import java.util.EnumMap;
 import java.util.LinkedList;
 
-class Node {
+class EnvironmentNode {
+    private int number;
     private int foodCount;
     private int pheromoneCount;
     private boolean revealed;
@@ -9,10 +10,11 @@ class Node {
     private LinkedList<Ant> enemyAnts;
     private EnumMap<Ant.AntType, Integer> antsOfType;
 
-    Node() {
+    EnvironmentNode(int i) {
+        number = i;
         foodCount = 0;
         pheromoneCount = 0;
-        revealed = true;
+        revealed = false;
         colonyAnts = new LinkedList<>();
         enemyAnts = new LinkedList<>();
         antsOfType = new EnumMap<>(Ant.AntType.class);
@@ -28,6 +30,10 @@ class Node {
 
     boolean hasAntOfType(Ant.AntType type) {
         return (antsOfType.containsKey(type) && antsOfType.get(type) > 0);
+    }
+
+    int getNumber() {
+        return number;
     }
 
     int scoutCount() {
@@ -62,8 +68,20 @@ class Node {
         }
     }
 
+    boolean hasEnemyAnts() {
+        return (enemyAnts.size() > 0);
+    }
+
+    boolean hasColonyAnts() {
+        return (colonyAnts.size() > 0);
+    }
+
     int getFoodAmount() {
         return foodCount;
+    }
+
+    void setFoodCount(int food) {
+        foodCount = food;
     }
 
     int getPheromoneAmount() {
