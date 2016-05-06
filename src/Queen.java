@@ -9,10 +9,12 @@ class Queen extends Ant {
 
     @Override
     protected void activate() {
-        if (currentNode.getFoodAmount() == 0) {
-            kill();
-        } else {
-            getCurrentNode().takeFood();
+        if (isAlive()) {
+            if (currentNode.getFoodAmount() == 0) {
+                kill();
+            } else {
+                getCurrentNode().takeFood();
+            }
         }
     }
 

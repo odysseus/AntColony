@@ -40,7 +40,7 @@ class World {
         return turnNumber;
     }
 
-    EnvironmentNode[] getAdjacentNodes(int nodeNo) {
+    List<EnvironmentNode> getAdjacentNodes(int nodeNo) {
         List<Integer> indices = new ArrayList<>();
         indices.add(nodeNo - 26);
         indices.add(nodeNo - 27);
@@ -79,12 +79,25 @@ class World {
             indices.remove((Integer) (nodeNo + 28));
         }
 
-        EnvironmentNode[] adjacent = new EnvironmentNode[indices.size()];
-        for (int i=0; i<adjacent.length; i++) {
-            adjacent[i] = environment[indices.get(i)];
+        List<EnvironmentNode> adjacent = new ArrayList<>();
+        for (int i : indices) {
+            adjacent.add(environment[i]);
         }
 
         return adjacent;
+    }
+
+    List<EnvironmentNode> getExploredAdjacentNodes(int nodeNo) {
+        List<EnvironmentNode> adjacent = getAdjacentNodes(nodeNo);
+        List<EnvironmentNode> explored = new ArrayList<>();
+
+        for (EnvironmentNode node : adjacent) {
+           if (node.isRevealed()) {
+               explored.add(node);
+           }
+        }
+
+        return explored;
     }
 
     public int nodeCount() {
@@ -118,6 +131,11 @@ class World {
         // Set the initial food supply and reveal the entrance
         entrance.setFoodCount(1000);
         entrance.setRevealed();
+
+        List<EnvironmentNode> adjacent = getAdjacentNodes(entrance.getNumber());
+        for (EnvironmentNode node : adjacent) {
+            node.setRevealed();
+        }
     }
 
     private void spawn(Ant.AntType type, EnvironmentNode node) {
@@ -176,6 +194,7 @@ class World {
     }
 
     private void beginTurn() {
+        System.out.println(antHeaven);
         turnNumber++;
 
         grim();
@@ -192,6 +211,15 @@ class World {
         beginTurn();
         for (Ant a : population) {
             if (a.getType() == Ant.AntType.SCOUT) {
+                a.activate();
+            }
+        }
+    }
+
+    void soldierTest() {
+        beginTurn();
+        for (Ant a : population) {
+            if (a.getType() == Ant.AntType.SOLDIER) {
                 a.activate();
             }
         }

@@ -118,6 +118,9 @@ public class AntColonyViewController implements SimulationEventListener {
             case SimulationEvent.SCOUT_TEST_EVENT:
                 world.scoutTest();
                 break;
+            case SimulationEvent.SOLDIER_TEST_EVENT:
+                world.soldierTest();
+                break;
             case SimulationEvent.STEP_EVENT:
                 world.nextTurn();
                 break;

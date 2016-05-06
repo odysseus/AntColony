@@ -1,3 +1,4 @@
+import java.util.List;
 import java.util.Random;
 
 public abstract class Ant {
@@ -23,7 +24,7 @@ public abstract class Ant {
     private static int cid = 0;
 
     public Ant(AntType t, World w) {
-        id = ++cid;
+        id = cid++;
         world = w;
         type = t;
         lifespan = 3650;
@@ -63,11 +64,6 @@ public abstract class Ant {
         lifespan = ls;
     }
 
-    public String toString() {
-        return String.format("Type: %s -- ID: %d -- Lifespan: %d",
-                type, id, lifespan);
-    }
-
     protected abstract void activate();
 
     protected void move(EnvironmentNode n) {
@@ -76,8 +72,21 @@ public abstract class Ant {
         currentNode = n;
     }
 
-    protected void randomMove(EnvironmentNode[] ns) {
-        move(ns[RAND.nextInt(ns.length)]);
+    protected void randomMove(List<EnvironmentNode> nodeList) {
+        int rand = RAND.nextInt(nodeList.size());
+        move(nodeList.get(rand));
+    }
+
+    protected int randInt(int max) {
+        return RAND.nextInt(max);
+    }
+
+    protected float randFloat() {
+        return RAND.nextFloat();
+    }
+
+    public String toString() {
+        return String.format("%d: %s - Birth Turn: %d, Lifespan: %d", id, type, birthDay, lifespan);
     }
 
 }

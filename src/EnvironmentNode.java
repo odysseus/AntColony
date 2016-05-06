@@ -72,6 +72,10 @@ class EnvironmentNode {
         return (enemyAnts.size() > 0);
     }
 
+    LinkedList<Ant> getEnemyAnts() {
+        return enemyAnts;
+    }
+
     boolean hasColonyAnts() {
         return (colonyAnts.size() > 0);
     }

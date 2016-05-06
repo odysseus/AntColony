@@ -1,3 +1,5 @@
+import java.util.List;
+
 class Scout extends Ant {
 
     Scout(World world) {
@@ -6,9 +8,11 @@ class Scout extends Ant {
 
     @Override
     protected void activate() {
-        EnvironmentNode[] adjacent = world.getAdjacentNodes(getCurrentNode().getNumber());
-        randomMove(adjacent);
-        currentNode.setRevealed();
+        if (isAlive()) {
+            List<EnvironmentNode> adjacent = world.getAdjacentNodes(getCurrentNode().getNumber());
+            randomMove(adjacent);
+            currentNode.setRevealed();
+        }
     }
 
 }
