@@ -395,8 +395,8 @@ class World {
 
         StringBuilder report = new StringBuilder();
         report.append("--- AFTER ACTION REPORT ---");
-        report.append(String.format("Seed: %ld", seed));
-        report.append(String.format("\nSimulation lasted %d Turns and %d Days", turnNumber, turnNumber / 10));
+        report.append(String.format("\nSeed: %d", seed));
+        report.append(String.format("\n\nSimulation lasted %d Turns and %d Days", turnNumber, turnNumber / 10));
         if (queen.diedNaturally()) {
             report.append("\nQueen died of old age");
         } else if (entrance.getFoodAmount() == 0) {

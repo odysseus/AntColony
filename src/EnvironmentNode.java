@@ -148,7 +148,7 @@ class EnvironmentNode {
      * @return list of revealed, adjacent nodes
      */
     List<EnvironmentNode> getExploredAdjacentNodes() {
-       return getExploredAdjacentNodes().stream().filter(
+       return getAdjacentNodes().stream().filter(
                EnvironmentNode::isRevealed ).collect(Collectors.toList());
     }
 
