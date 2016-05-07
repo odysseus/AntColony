@@ -1,18 +1,60 @@
+/**
+ *
+ * CSC 385 - Data Structures and Algorithms
+ * Spring 2016
+ * Ryan Case (rcase5@uis.edu)
+ *
+ */
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 class EnvironmentNode {
+    /**
+     * EnvironmentNodes represent each of the squares in the Ant Colony
+     * simulation. They store information about their contents and a link
+     * back to the world in which they are contained so they can fetch
+     * adjacent nodes.
+     */
+
+    /* * *
+     *  Attributes
+     * * */
+
+    // the containing world
     private World world;
+
+    // the node number/ index for the current node
     private int number;
+
+    // the amount of food currently present
     private int foodCount;
+
+    // the amount of pheromone in the square
     private int pheromoneCount;
+
+    // true if the square has been revealed by scouts, false otherwise
     private boolean revealed;
+
+    // colony ants present in the square
     private LinkedList<Ant> colonyAnts;
+
+    // enemy ants present in the square
     private LinkedList<Ant> enemyAnts;
+
+    // map storing the count of each ant type present in the square
     private EnumMap<Ant.AntType, Integer> antsOfType;
 
+    /* * *
+     *  Constructors
+     * * */
+
+    /**
+     * @param w the world the node is a part of
+     * @param i the index of the node in the environment array
+     */
     EnvironmentNode(World w, int i) {
         world = w;
         number = i;
@@ -24,22 +66,32 @@ class EnvironmentNode {
         antsOfType = new EnumMap<>(Ant.AntType.class);
     }
 
+    /* * *
+     *  Getters
+     * * */
+
+    /**
+     * @return true if revealed, false otherwise
+     */
     boolean isRevealed() {
         return revealed;
     }
 
-    void setRevealed() {
-        revealed = true;
-    }
-
+    /**
+     * @param type The ant type to look for
+     * @return true if that ant type is present in the node
+     */
     boolean hasAntOfType(Ant.AntType type) {
         return (antsOfType.containsKey(type) && antsOfType.get(type) > 0);
     }
 
-    int getNumber() {
-        return number;
-    }
-
+    /**
+     * Long method to find all valid, adjacent nodes. It does this by finding
+     * all *potential* adjacent nodes and then removing those which are invalid
+     * by virtue of the node being on an edge.
+     *
+     * @return list of adjacent, legal nodes
+     */
     List<EnvironmentNode> getAdjacentNodes() {
         List<Integer> indices = new ArrayList<>();
 
@@ -88,27 +140,35 @@ class EnvironmentNode {
         return adjacent;
     }
 
+    /**
+     * Much like {@link #getAdjacentNodes()} this seeks to simplify movement
+     * for the ants, but in this case the list is filtered down to only those
+     * nodes that have already been revealed.
+     *
+     * @return list of revealed, adjacent nodes
+     */
     List<EnvironmentNode> getExploredAdjacentNodes() {
-        List<EnvironmentNode> adjacent = getAdjacentNodes();
-        List<EnvironmentNode> explored = new ArrayList<>();
-
-        for (EnvironmentNode node : adjacent) {
-            if (node.isRevealed()) {
-                explored.add(node);
-            }
-        }
-
-        return explored;
+       return getExploredAdjacentNodes().stream().filter(
+               EnvironmentNode::isRevealed ).collect(Collectors.toList());
     }
 
+    /**
+     * @return true if the node in question is also the colony entrance
+     */
     boolean isEntrance() {
         return (this == world.getEntrance());
     }
 
+    /**
+     * @return true if the node contains more than zero food
+     */
     boolean hasFood() {
         return (this.foodCount > 0 && !this.isEntrance());
     }
 
+    /**
+     * @return number of scouts in the node
+     */
     int scoutCount() {
         if (antsOfType.containsKey(Ant.AntType.SCOUT)) {
             return antsOfType.get(Ant.AntType.SCOUT);
@@ -117,6 +177,9 @@ class EnvironmentNode {
         }
     }
 
+    /**
+     * @return number of soldiers in the node
+     */
     int soldierCount() {
         if (antsOfType.containsKey(Ant.AntType.SOLDIER)) {
             return antsOfType.get(Ant.AntType.SOLDIER);
@@ -125,6 +188,9 @@ class EnvironmentNode {
         }
     }
 
+    /**
+     * @return number of foragers in the node
+     */
     int foragerCount() {
         if (antsOfType.containsKey(Ant.AntType.FORAGER)) {
             return antsOfType.get(Ant.AntType.FORAGER);
@@ -133,6 +199,9 @@ class EnvironmentNode {
         }
     }
 
+    /**
+     * @return number of balas in the node
+     */
     int balaCount() {
         if (antsOfType.containsKey(Ant.AntType.BALA)) {
             return antsOfType.get(Ant.AntType.BALA);
@@ -141,42 +210,89 @@ class EnvironmentNode {
         }
     }
 
+    /**
+     * @return true if enemy ants are present
+     */
     boolean hasEnemyAnts() {
-        return (enemyAnts.size() > 0);
+        return (enemyAnts.stream().filter(Ant::isAlive).count() > 0);
     }
 
-    LinkedList<Ant> getEnemyAnts() {
-        return enemyAnts;
+    /**
+     * @return list of all enemy ants present
+     */
+    List<Ant> getEnemyAnts() {
+        return enemyAnts.stream().filter(Ant::isAlive).collect(Collectors.toList());
     }
 
+    /**
+     * @return true if colony ants are present
+     */
     boolean hasColonyAnts() {
-        return (colonyAnts.size() > 0);
+        return (colonyAnts.stream().filter(Ant::isAlive).count() > 0);
     }
 
-    LinkedList<Ant> getColonyAnts() {
-        return colonyAnts;
+    /**
+     * @return list of all colony ants present
+     */
+    List<Ant> getColonyAnts() {
+        return colonyAnts.stream().filter(Ant::isAlive).collect(Collectors.toList());
     }
 
+    /**
+     * @return amount of food in the node
+     */
     int getFoodAmount() {
         return foodCount;
     }
 
-    void setFoodCount(int food) {
-        foodCount = food;
-    }
-
+    /**
+     * @return amount of pheromone in the node
+     */
     int getPheromoneAmount() {
         return pheromoneCount;
     }
 
+    /**
+     * Sets the amount of food in the node
+     *
+     * @param food *total* amount of food in the node
+     */
+    void setFoodCount(int food) {
+        foodCount = food;
+    }
+
+    /**
+     * Adds pheromone to the amount already present
+     *
+     * @param amt amount to add
+     */
     void addPheromone(int amt) {
         pheromoneCount += amt;
     }
 
+    /**
+     * Halves the amount of pheromone in a cell (rounded down)
+     */
     void halvePheromone() {
         pheromoneCount /= 2;
     }
 
+    /* * *
+     *  Setters
+     * * */
+
+    /**
+     * Sets the node as revealed
+     */
+    void setRevealed() {
+        revealed = true;
+    }
+
+    /**
+     * Adds an ant to the appropriate list of currently present ants
+     *
+     * @param a ant to add
+     */
     void addAnt(Ant a) {
         if (a.getType() != Ant.AntType.BALA) {
             colonyAnts.add(a);
@@ -192,6 +308,11 @@ class EnvironmentNode {
         }
     }
 
+    /**
+     * Removes an ant from the node
+     *
+     * @param a ant to remove
+     */
     void removeAnt(Ant a) {
         if (a.getType() != Ant.AntType.BALA) {
             colonyAnts.remove(a);
@@ -203,10 +324,18 @@ class EnvironmentNode {
         antsOfType.put(a.getType(), current-1);
     }
 
+    /**
+     * Adds an amount of food to the quantity already present
+     *
+     * @param amt amount to add
+     */
     void addFood(int amt) {
         foodCount += amt;
     }
 
+    /**
+     * Remove a single unit of food from this node
+     */
     void takeFood() {
         foodCount--;
     }
